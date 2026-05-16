@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="description" content="FRPVault — Gerenciador profissional de desbloqueio FRP">
+<meta name="theme-color" content="#00f0a0">
+<title>FRP Vault</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon-192.png">
+
+<link rel="stylesheet" href="./src/css/global.css">
+<link rel="stylesheet" href="./src/css/animations.css">
+<link rel="stylesheet" href="./src/css/components.css">
+<link rel="stylesheet" href="./src/css/pages/auth.css">
+<link rel="stylesheet" href="./src/css/pages/dashboard.css">
+<link rel="stylesheet" href="./src/css/pages/reset.css">
+
+<style>
+.input-error{border-color:var(--red)!important;box-shadow:0 0 0 3px rgba(255,83,112,.12)!important}
+.field-error{font-size:11px;color:var(--red);margin-top:5px}
+.field-error::before{content:'⚠ '}
+.pass-wrap{position:relative}
+.pass-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--txt3);padding:4px;display:flex;transition:color var(--t)}
+.pass-toggle:hover{color:var(--txt2)}
+.strength-bar{display:flex;gap:4px;margin-top:8px}
+.strength-seg{flex:1;height:3px;border-radius:99px;background:var(--sur3);transition:background .3s}
+.strength-seg.s1{background:var(--red)}
+.strength-seg.s2{background:var(--yellow)}
+.strength-seg.s3,.strength-seg.s4{background:var(--ac)}
+.strength-label{font-size:11px;color:var(--txt3);margin-top:4px}
+.kbd{display:inline-flex;align-items:center;background:var(--sur3);border:1px solid var(--bdr2);border-radius:5px;padding:1px 6px;font-size:11px;font-family:'Space Mono',monospace;color:var(--txt2)}
+.help-grid{display:grid;gap:0}
+.help-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--bdr);font-size:13px}
+.help-row:last-child{border-bottom:none}
+.help-desc{color:var(--txt2)}
+.toolbar-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.toolbar-actions{display:flex;gap:8px;margin-left:auto}
+.scroll-top{position:fixed;bottom:24px;right:24px;z-index:50;width:40px;height:40px;border-radius:50%;background:var(--sur3);border:1px solid var(--bdr2);display:none;align-items:center;justify-content:center;cursor:pointer;color:var(--txt2);transition:all var(--t);box-shadow:var(--shadow)}
+.scroll-top.show{display:flex}
+.scroll-top:hover{background:var(--ac-dim);border-color:rgba(0,240,160,.3);color:var(--ac)}
+#analyticsView{display:none}
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="authScreen" class="auth-screen on">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">🔐</div>
+      <div class="auth-logo-text">FRP<span>Vault</span></div>
+    </div>
+    <div id="authTitle" class="auth-title">Bem-vindo de volta</div>
+    <div id="authSub" class="auth-sub">Entre na sua conta</div>
+    <div class="auth-tabs">
+      <button class="auth-tab on" data-mode="login">Entrar</button>
+      <button class="auth-tab" data-mode="register">Cadastrar</button>
+    </div>
+    <div id="authErr" class="err-box"></div>
+    <div id="authNameGroup" class="form-group" style="display:none">
+      <label class="form-label" for="authName">Nome</label>
+      <input id="authName" class="form-input" type="text" placeholder="Seu nome" autocomplete="name">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="authEmail">Email</label>
+      <input id="authEmail" class="form-input" type="email" placeholder="seu@email.com" autocomplete="email">
+    </div>
+    <div class="form-group" style="margin-bottom:6px">
+      <label class="form-label" for="authPass">Senha</label>
+      <div class="pass-wrap">
+        <input id="authPass" class="form-input" type="password" placeholder="••••••••" autocomplete="current-password" style="padding-right:40px">
+        <button class="pass-toggle" data-toggle-pass="authPass" aria-label="Mostrar senha" type="button">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+      <div id="passStrengthWrap" style="display:none">
+        <div class="strength-bar">
+          <div class="strength-seg" id="seg1"></div><div class="strength-seg" id="seg2"></div>
+          <div class="strength-seg" id="seg3"></div><div class="strength-seg" id="seg4"></div>
+        </div>
+        <div class="strength-label" id="strengthLabel"></div>
+      </div>
+    </div>
+    <div id="forgotWrap" style="text-align:right;margin-bottom:18px">
+      <button id="btnForgotPassword" style="background:none;border:none;color:var(--ac);font-size:12px;cursor:pointer;font-family:'Outfit',sans-serif;font-weight:600" type="button">Esqueci a senha</button>
+    </div>
+    <button id="btnAuthSubmit" class="btn btn-primary btn-full btn-lg" type="button">Entrar</button>
+    <div class="divider"><span>ou</span></div>
+    <button id="btnGoogle" class="auth-google-btn" type="button">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/><path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>
+      Continuar com Google
+    </button>
+  </div>
+</div>
+
+<!-- RESET SENHA -->
+<div id="resetScreen" class="reset-screen">
+  <div class="reset-card">
+    <button id="btnResetBack" class="reset-back" type="button">
+      <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M19 12H5M5 12l7 7M5 12l7-7"/></svg>
+      Voltar para login
+    </button>
+    <div id="resetFormView">
+      <div class="reset-icon">🔑</div>
+      <div class="reset-title">Recuperar senha</div>
+      <div class="reset-sub">Digite seu email e enviaremos um link para criar uma nova senha.</div>
+      <div id="resetErr" class="err-box" style="margin-bottom:14px"></div>
+      <div class="form-group">
+        <label class="form-label" for="resetEmail">Email da conta</label>
+        <input id="resetEmail" class="form-input" type="email" placeholder="seu@email.com" autocomplete="email">
+      </div>
+      <button id="btnSendReset" class="btn btn-primary btn-full btn-lg" type="button">Enviar link de recuperação</button>
+    </div>
+    <div id="resetSuccessView" class="reset-success" style="display:none">
+      <div class="reset-success-icon">✉</div>
+      <div class="reset-success-title">Email enviado!</div>
+      <div class="reset-success-sub">Verifique sua caixa de entrada. Pode levar alguns minutos.</div>
+      <button class="btn btn-ghost" type="button" id="btnBackFromSuccess">Voltar para login</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOVA SENHA -->
+<div id="newPassScreen" class="new-pass-screen">
+  <div class="reset-card">
+    <div class="reset-icon">🛡️</div>
+    <div class="reset-title">Nova senha</div>
+    <div class="reset-sub">Escolha uma senha forte para proteger sua conta.</div>
+    <div id="newPassErr" class="err-box" style="margin-bottom:14px"></div>
+    <div class="form-group">
+      <label class="form-label" for="newPassInput">Nova senha</label>
+      <div class="pass-wrap">
+        <input id="newPassInput" class="form-input" type="password" placeholder="Mínimo 6 caracteres" style="padding-right:40px">
+        <button class="pass-toggle" data-toggle-pass="newPassInput" aria-label="Mostrar senha" type="button">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+      <div class="strength-bar" style="margin-top:8px">
+        <div class="strength-seg" id="nps1"></div><div class="strength-seg" id="nps2"></div>
+        <div class="strength-seg" id="nps3"></div><div class="strength-seg" id="nps4"></div>
+      </div>
+      <div class="strength-label" id="newPassStrengthLabel"></div>
+    </div>
+    <div class="form-group" style="margin-bottom:20px">
+      <label class="form-label" for="newPassConfirm">Confirmar senha</label>
+      <div class="pass-wrap">
+        <input id="newPassConfirm" class="form-input" type="password" placeholder="••••••••" style="padding-right:40px">
+        <button class="pass-toggle" data-toggle-pass="newPassConfirm" aria-label="Mostrar senha" type="button">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+    <button id="btnUpdatePass" class="btn btn-primary btn-full btn-lg" type="button">Salvar nova senha</button>
+  </div>
+</div>
+
+<!-- EMAIL CONFIRMADO -->
+<div id="confirmedScreen" class="confirmed-screen">
+  <div class="confirmed-icon">✓</div>
+  <div class="confirmed-title">Email confirmado!</div>
+  <div class="confirmed-sub">Sua conta foi ativada. Agora você pode fazer login.</div>
+  <button class="btn btn-primary" type="button" id="btnGoToLogin">Ir para Login</button>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+  <!-- SIDEBAR -->
+  <nav id="sidebar" class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🔐</div>
+      <div class="sidebar-logo-text">FRP<span>Vault</span></div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Principal</div>
+      <a href="#" class="sidebar-item active" id="navDashboard">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </a>
+      <a href="#" class="sidebar-item" id="navAnalytics">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Analytics
+      </a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Registros</div>
+      <button class="sidebar-item" id="sidebarBtnNew" type="button">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        Novo Registro
+        <span class="kbd" style="margin-left:auto;font-size:9px">N</span>
+      </button>
+      <button class="sidebar-item" id="sidebarBtnSearch" type="button">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        Buscar
+        <span class="kbd" style="margin-left:auto;font-size:9px">/</span>
+      </button>
+      <button class="sidebar-item" id="sidebarBtnExport" type="button">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        Exportar CSV
+        <span class="kbd" style="margin-left:auto;font-size:9px">⌘E</span>
+      </button>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Ajuda</div>
+      <button class="sidebar-item" id="sidebarBtnHelp" type="button">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+        Atalhos de teclado
+        <span class="kbd" style="margin-left:auto;font-size:9px">?</span>
+      </button>
+    </div>
+
+    <div class="sidebar-bottom">
+      <div class="sidebar-user">
+        <div class="sidebar-avatar">?</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-email">carregando...</div>
+          <div class="sidebar-user-role">Usuário Pro</div>
+        </div>
+      </div>
+      <button id="btnSignOut" class="sidebar-item" style="width:100%;border:none;background:none;text-align:left;cursor:pointer;margin-top:6px;color:var(--txt2)" type="button">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        Sair da conta
+      </button>
+    </div>
+  </nav>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <button id="btnMenuToggle" class="mobile-menu-btn" aria-label="Menu" type="button">
+      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+    </button>
+    <div class="topbar-title">Dashboard</div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost" style="font-size:12px" type="button" id="btnOpenPalette">
+        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <span style="color:var(--txt3)">⌘K</span>
+      </button>
+      <button id="btnNewRecord" class="btn btn-primary" type="button">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        Novo
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="main-content">
+    <div class="page-content">
+
+      <!-- DASHBOARD VIEW -->
+      <div id="dashboardView">
+        <div id="statsGrid" class="stats-grid" style="margin-bottom:24px"></div>
+        <div class="toolbar-row">
+          <div class="search-wrap" style="flex:1;min-width:160px">
+            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input id="srch" class="search-input" type="search" placeholder="Buscar por marca, modelo, ferramenta...">
+          </div>
+          <select id="fSt" class="form-input" style="width:auto;min-width:120px">
+            <option value="">Todos</option>
+            <option value="sim">✓ Funcionou</option>
+            <option value="nao">✗ Falhou</option>
+          </select>
+          <select id="fBr" class="form-input" style="width:auto;min-width:130px">
+            <option value="">Todas as marcas</option>
+          </select>
+          <select id="fFav" class="form-input" style="width:auto;min-width:120px">
+            <option value="">Todos</option>
+            <option value="1">★ Favoritos</option>
+          </select>
+          <select id="fSort" class="form-input" style="width:auto;min-width:150px">
+            <option value="created_at_desc">Mais recentes</option>
+            <option value="created_at_asc">Mais antigos</option>
+            <option value="marca_asc">Marca A→Z</option>
+            <option value="marca_desc">Marca Z→A</option>
+            <option value="status_sim">Funcionaram primeiro</option>
+            <option value="status_nao">Falharam primeiro</option>
+          </select>
+          <div class="toolbar-actions">
+            <button id="btnExportCSV" class="btn btn-ghost" title="Exportar CSV (⌘E)" type="button">
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+              CSV
+            </button>
+          </div>
+        </div>
+        <div style="margin-bottom:12px">
+          <span id="recordCount" class="count-tag">0 registros</span>
+        </div>
+        <div id="recordsGrid" class="records-grid"></div>
+      </div>
+
+      <!-- ANALYTICS VIEW -->
+      <div id="analyticsView">
+        <div class="page-header" style="margin-bottom:20px">
+          <div>
+            <div class="page-title">Analytics</div>
+            <div class="page-sub">Visão geral dos seus desbloqueios</div>
+          </div>
+        </div>
+        <div id="analyticsContainer"></div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- COMMAND PALETTE -->
+<div id="cmdOverlay" class="cmd-overlay">
+  <div class="cmd-palette">
+    <div class="cmd-input-wrap">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input id="cmdInput" class="cmd-input" placeholder="Buscar comandos...">
+      <kbd class="cmd-shortcut">ESC</kbd>
+    </div>
+    <div id="cmdResults" class="cmd-results"></div>
+  </div>
+</div>
+
+<!-- MODAL REGISTRO -->
+<div id="modalOverlay" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <div id="modalTitle" class="modal-title">Novo Registro</div>
+      <button id="btnModalClose" class="btn btn-icon" aria-label="Fechar" type="button">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-input-row">
+        <div class="form-group">
+          <label class="form-label" for="fMarca">Marca <span style="color:var(--red)">*</span></label>
+          <input id="fMarca" class="form-input" type="text" placeholder="Samsung, Motorola...">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="fModelo">Modelo <span style="color:var(--red)">*</span></label>
+          <input id="fModelo" class="form-input" type="text" placeholder="S24 Ultra, G54...">
+        </div>
+      </div>
+      <div class="form-input-row">
+        <div class="form-group">
+          <label class="form-label" for="fAnd">Versão Android</label>
+          <input id="fAnd" class="form-input" type="text" placeholder="14, 13, 12...">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="fData">Data do Serviço</label>
+          <input id="fData" class="form-input" type="date">
+        </div>
+      </div>
+      <div class="form-input-row">
+        <div class="form-group">
+          <label class="form-label" for="fFerr">Ferramenta</label>
+          <input id="fFerr" class="form-input" type="text" placeholder="Pandora Box, MRT...">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="fModo">Modo</label>
+          <input id="fModo" class="form-input" type="text" placeholder="Fastboot, EDL, ADB...">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="fBin">Binário / Versão</label>
+        <input id="fBin" class="form-input" type="text" placeholder="v1.2.3 ou hash...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <div class="status-group">
+          <div class="status-opt">
+            <input type="radio" id="stSim" name="st" value="sim">
+            <label for="stSim" class="sim">✓ Funcionou</label>
+          </div>
+          <div class="status-opt">
+            <input type="radio" id="stNao" name="st" value="nao">
+            <label for="stNao" class="nao">✗ Não funcionou</label>
+          </div>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label" for="fObs">Observações</label>
+        <textarea id="fObs" class="form-input" placeholder="Detalhes, erros encontrados, dicas..." rows="3"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" type="button" id="btnModalCancel">Cancelar</button>
+      <button id="btnSave" class="btn btn-primary" type="button">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Salvar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ATALHOS -->
+<div id="helpOverlay" class="modal-overlay">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-head">
+      <div class="modal-title">⌨ Atalhos de Teclado</div>
+      <button class="btn btn-icon" type="button" id="btnCloseHelp" aria-label="Fechar">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="help-grid">
+        <div class="help-row"><span class="help-desc">Novo registro</span><span class="kbd">N</span></div>
+        <div class="help-row"><span class="help-desc">Focar na busca</span><span class="kbd">/</span></div>
+        <div class="help-row"><span class="help-desc">Command Palette</span><span class="kbd">⌘ K</span></div>
+        <div class="help-row"><span class="help-desc">Exportar CSV</span><span class="kbd">⌘ E</span></div>
+        <div class="help-row"><span class="help-desc">Fechar modal</span><span class="kbd">Esc</span></div>
+        <div class="help-row"><span class="help-desc">Mostrar atalhos</span><span class="kbd">?</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button id="scrollTop" class="scroll-top" aria-label="Voltar ao topo" type="button">
+  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg>
+</button>
+
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>

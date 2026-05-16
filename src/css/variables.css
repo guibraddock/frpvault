@@ -1,0 +1,68 @@
+/* ══════════════════════════════════════════════
+   FRPVault v2 — Design Tokens
+   ══════════════════════════════════════════════ */
+:root {
+  /* Background */
+  --bg:          #060610;
+  --bg-2:        #0a0a1a;
+  --bg-3:        #0f0f20;
+
+  /* Surfaces */
+  --sur:         rgba(255,255,255,.045);
+  --sur2:        rgba(255,255,255,.03);
+  --sur3:        rgba(255,255,255,.07);
+  --sur-hover:   rgba(255,255,255,.06);
+
+  /* Borders */
+  --bdr:         rgba(255,255,255,.08);
+  --bdr2:        rgba(255,255,255,.13);
+  --bdr3:        rgba(255,255,255,.18);
+
+  /* Accent — neon green */
+  --ac:          #00f0a0;
+  --ac-dim:      rgba(0,240,160,.12);
+  --ac-glow:     rgba(0,240,160,.3);
+  --ac-dark:     #00c882;
+
+  /* Accent 2 — violet */
+  --ac2:         #8b5cf6;
+  --ac2-dim:     rgba(139,92,246,.13);
+  --ac2-glow:    rgba(139,92,246,.3);
+
+  /* Accent 3 — cyan */
+  --ac3:         #22d3ee;
+  --ac3-dim:     rgba(34,211,238,.12);
+
+  /* Status */
+  --red:         #ff5370;
+  --red-dim:     rgba(255,83,112,.12);
+  --yellow:      #ffd060;
+  --yellow-dim:  rgba(255,208,96,.12);
+  --green:       #00f0a0;
+  --green-dim:   rgba(0,240,160,.12);
+
+  /* Text */
+  --txt:         #f0f0fa;
+  --txt2:        #9090b8;
+  --txt3:        #6060a0;
+  --mut:         #48487a;
+
+  /* Radius */
+  --r:     14px;
+  --r2:    20px;
+  --r3:    10px;
+  --r-sm:  8px;
+
+  /* Shadows */
+  --shadow:    0 8px 40px rgba(0,0,0,.65);
+  --shadow-ac: 0 0 40px rgba(0,240,160,.1);
+  --shadow-lg: 0 20px 80px rgba(0,0,0,.8);
+
+  /* Spacing */
+  --sidebar-w: 240px;
+  --topbar-h:  60px;
+
+  /* Transitions */
+  --t:  .2s cubic-bezier(.4,0,.2,1);
+  --t2: .35s cubic-bezier(.16,1,.3,1);
+}
